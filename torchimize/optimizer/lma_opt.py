@@ -9,22 +9,18 @@ try:
 except ImportError:
     from torch.nn.utils import _stateless as stateless
 
-
-
-class GNA(Optimizer):
-    r"""Implements Gauss-Newton.
+class LMA(Optimizer):
+    r"""Implements Levenberg-Marquardt.
     """
 
-    def __init__(self, params, lr: float, model: nn.Module, hessian_approx: bool = True):
+    def __init__(self, params, lr: float, model: nn.Module):
 
         if lr is not None and lr < 0.0:
             raise ValueError("Invalid learning rate: {}".format(lr))
 
         defaults = dict(lr=lr)
 
-        super(GNA, self).__init__(params, defaults)
-
-        self.hessian_approx = hessian_approx
+        super(LMA, self).__init__(params, defaults)
 
         self._model = model
         self._params = self.param_groups[0]['params']
@@ -32,10 +28,11 @@ class GNA(Optimizer):
         self._h_list = []
 
     def __setstate__(self, state):
-        super(GNA, self).__setstate__(state)
+        super(LMA, self).__setstate__(state)
         for group in self.param_groups:
             group.setdefault('nesterov', False)
             group.setdefault('amsgrad', False)
+        return super().__setstate__(state)
 
     @torch.no_grad()
     def step(self, x: torch.Tensor, closure=None):

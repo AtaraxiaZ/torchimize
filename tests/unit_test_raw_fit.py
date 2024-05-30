@@ -30,7 +30,7 @@ class Net(nn.Module):
         super(Net, self).__init__()
         self.hidden = nn.Linear(1, 20)
         self.predict = nn.Linear(20, 1)
- 
+
     def forward(self, x):
         x = F.relu(self.hidden(x))
         x = self.predict(x)
@@ -46,10 +46,10 @@ class TorchimizerTest(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TorchimizerTest, self).__init__(*args, **kwargs)
 
-        self.plt_opt = False
+        self.plt_opt = True
 
     def setUp(self):
-        
+
         torch.manual_seed(3008)
 
         X = torch.linspace(-1, 1, 1000)
@@ -75,7 +75,7 @@ class TorchimizerTest(unittest.TestCase):
         self.opt = GNA(self.net.parameters(), lr=self.LR, model=self.net)
 
     def test_optimizer(self):
-        
+
         # for LBFGS usage
         def closure():
             pre = self.net(b_x)
@@ -109,26 +109,30 @@ class TorchimizerTest(unittest.TestCase):
             torch.save(self.net.state_dict(), Path.cwd() / 'result' / 'raw_train_fit_model.pth')
         except (FileNotFoundError, RuntimeError):
             pass
-        
+
         self.net.eval()
         predict = self.net(self.X_test)
         predict = predict.data.numpy()
-        
+
         if self.plt_opt:
             import matplotlib.pyplot as plt
             plt.scatter(self.X_test.numpy(), self.y_test, label='origin')
             plt.scatter(self.X_test.numpy(), predict, color='red', label='predict')
             plt.legend()
             plt.show()
-    
+
     def gna_optimizer(self):
 
         for hessian_method in range(0, 1):
             self.opt = GNA(self.net.parameters(), lr=self.LR, model=self.net, hessian_approx=bool(hessian_method))
             self.test_optimizer()
 
+    def lma_optimizer(self):
+        pass
+
+
     def adam_optimizer(self):
-        
+
         self.opt = torch.optim.Adam(self.net.parameters(), lr=self.LR)
         self.test_optimizer()
 
